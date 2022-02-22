@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Dec  1 17:42:15 2020
-
-@author: sarga
-"""
 
 # =============================================================================
 # OTOTOXICITY clinical+SNPs prediction model
@@ -19,10 +14,8 @@ from collections import Counter
 import subprocess
 import random
 import heapq
-# Import Imputation libraries
 from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
-# Import models libraries
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
@@ -68,7 +61,7 @@ def return_random_lines_file(size, seed, file_path='/home/projects/pr_46457/peop
     sample = list(map(lambda s: s.strip(), sample))
     return sample
 
-#downsample (only works for binary classification)
+#downsample (only for binary classification)
 def downsample_major_class(X_train, y_train, major_class, seed):
     """
     X_train: Training data, input as a numpy array.
