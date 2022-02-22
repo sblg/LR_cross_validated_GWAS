@@ -17,11 +17,11 @@ module load anaconda3/4.4.0
 
 ### Define path/variables
 # The working/intermediate directory
-export basepath='/home/projects/pr_46457/people/sarga/neurotox/data/intermediate'
+export basepath='/home/data/intermediate'
 # QC result file
-export data='/home/projects/pr_46457/people/s174604/ML/RF/inner_gwas/QC_data'
+export data='/home/inner_gwas/QC_data'
 # Path to pheno file
-export pheno_oto="/home/projects/pr_46457/people/sarga/neurotox/data"
+export pheno_oto="/home/data"
 
 cd ${basepath}
 
