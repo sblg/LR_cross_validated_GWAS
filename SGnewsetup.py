@@ -53,7 +53,7 @@ def mode_dict(my_dict, n):
     return list(my_dict_sorted.keys())[0:n]
 
 #return random SNPs
-def return_random_lines_file(size, seed, file_path='/home/projects/pr_46457/people/sarga/neurotox/data/all_snps'):
+def return_random_lines_file(size, seed, file_path='/home/data/all_snps'):
     SIZE = size
     with open(file_path) as fin:
         random.seed(seed)
@@ -87,8 +87,8 @@ def downsample_major_class(X_train, y_train, major_class, seed):
     return X_train, y_train
 
 #returns snps from GWAS analysis
-def inner_gwas(itrain_idx, fam_ID_dict, seed, sh_scriptpath="/home/projects/pr_46457/people/sarga/neurotox/scripts/inner_gwas_NTX6.sh", outpath="/
-home/projects/pr_46457/people/sarga/neurotox/data/intermediate"):
+def inner_gwas(itrain_idx, fam_ID_dict, seed, sh_scriptpath="inner_gwas_NTX6.sh", outpath="/
+home/data/intermediate"):
     ######## Inner GWAS##########
     snps_gwas=[]
     # File with train fids and iids (FID \t IID)
@@ -131,60 +131,8 @@ def forward_fs_lr(Xitrain, Xval, yitrain, yval,best_features, all_snps,
         dict_forward_fs[feat]=best_score, clfs[best_k]
     return dict_forward_fs
 
-#random forest w/ parameter optimization
-def forward_fs_rf(Xitrain, Xval, yitrain, yval,best_features, all_snps,
-               parameters={'n_estimators': [10, 50, 100, 150, 200]}):
-    dict_forward_fs={}
-    for feat in all_snps:
-        Xitrain_tmp=Xitrain[best_features+[feat]]
-        Xitrain_tmp,yitrain=downsample_major_class(Xitrain_tmp, yitrain, 0, 42)
-        Xval_tmp=Xval[best_features+[feat]]
-        #returns a numpy array
-        best_k, best_score = -1, -1
-        clfs = {}
-        # hyperparameter tuning
-        param_grid = parameters
-        for k in ParameterGrid(param_grid):
-            pipe = RandomForestClassifier(random_state=42).set_params(**k)
-            pipe.fit(Xitrain_tmp, yitrain.values.ravel())
-            y_pred_inner = pipe.predict_proba(Xval_tmp)
-            fpr, tpr, thresholds = roc_curve(yval, y_pred_inner[:, 1])
-            score_mean = auc(fpr, tpr)
-            if best_score < score_mean:
-                best_k, best_score = str(k),score_mean
-            clfs[str(k)] = pipe
-        dict_forward_fs[feat]=best_score, clfs[best_k]
-    return dict_forward_fs
-
-#artificial neural network w/ parameter optimization
-def forward_fs_ann(Xitrain, Xval, yitrain, yval,best_features, all_snps,
-                parameters={
-                    'hidden_layer_sizes': [(3,),(4,),(5,),(6,)],
-                    'learning_rate_init':[0.001,0.01,0.05,0.1]}):
-    dict_forward_fs={}
-    for feat in all_snps:
-        Xitrain_tmp=Xitrain[best_features+[feat]]
-        Xitrain_tmp,yitrain=downsample_major_class(Xitrain_tmp, yitrain, 0, 42)
-        Xval_tmp=Xval[best_features+[feat]]
-        #returns a numpy array
-        best_k, best_score = -1, -1
-        clfs = {}
-        # hyperparameter tuning
-        param_grid = parameters
-        for k in ParameterGrid(param_grid):
-            pipe = MLPClassifier(random_state=42,activation='relu',solver='adam', max_iter=100000).set_params(**k)
-            pipe.fit(Xitrain_tmp, yitrain.values.ravel())
-            y_pred_inner = pipe.predict_proba(Xval_tmp)
-            fpr, tpr, thresholds = roc_curve(yval, y_pred_inner[:, 1])
-            score_mean = auc(fpr, tpr)
-            if best_score < score_mean:
-                best_k, best_score = str(k),score_mean
-            clfs[str(k)] = pipe
-        dict_forward_fs[feat]=best_score, clfs[best_k]
-    return dict_forward_fs
-
 def fs_ml(data_x, data_y, clinical_features,literature_snps,max_features, seed ,n_outer=5, n_inner=5, index_col_name='Unnamed: 0', data_x_path="/h
-ome/projects/pr_46457/people/sarga/neurotox/data/X_data.csv", function=forward_fs_rf, imputation=True, normalize=False):
+ome/data/X_data.csv", function=forward_fs_lr, imputation=True, normalize=False):
     inner_gwas_dict={} #save snps from each inner-gwas
     feat_selected=clinical_features.copy()
     no_features=len(feat_selected)
@@ -249,8 +197,8 @@ ome/projects/pr_46457/people/sarga/neurotox/data/X_data.csv", function=forward_f
 
 #forward selection_machine learning
 def check_last_performaces(data_x, data_y, clinical_features,literature_snps,max_features, seed, n_outer=5, n_inner=5, index_col_name='Unnamed: 0'
-, data_x_path="/home/projects/pr_46457/people/sarga/neurotox/data/X_data.csv", function=forward_fs_rf, imputation=True, normalize=False, parameter
-s={'n_estimators': [10, 50, 100, 150, 200]}, model=RandomForestClassifier(random_state=42)):
+, data_x_path="/home/neurotox/data/X_data.csv", function=forward_fs_rf, imputation=True, normalize=False, parameter
+s={'n_estimators': [10, 50, 100, 150, 200]}, model=LogisticRegression(random_state=42, max_iter=10000, multi_class='auto')):
     print("seed: ",seed)
     all_results_ML={} #save roc-auc
     all_results_ML_inner={} #save roc-auc inner
@@ -323,18 +271,16 @@ putation, normalize)
 print("Load Data structures")
 
 #import only index_col (only interested in sample ID)
-X=pd.read_csv("/home/projects/pr_46457/people/sarga/neurotox/data/X_data.csv", index_col=0, usecols=[0])
+X=pd.read_csv("/home/data/X_data.csv", index_col=0, usecols=[0])
 X.index=X.index.astype(int)
 
 #phenotype_ntx6
-y=pd.read_csv("/home/projects/pr_46457/people/sarga/neurotox/data/y_data_NTX6.csv", index_col=0)
+y=pd.read_csv("/home/data/y_data_NTX6.csv", index_col=0)
 #PHENO 1
 y['NTX6'] = y['NTX6'].map({0: 0, 1: 0,2: 1, 3: 1, 4:1})
-# #PHENO 2
-# y['NTX6'] = y['NTX6'].map({0: 0, 1: 0,2: 0, 3: 1, 4:1})
 
 #literature SNPs
-with open('/home/projects/pr_46457/people/sarga/neurotox/results/VEP_literature/snps_high_drugresponse_literature.txt', 'r') as f:
+with open('/home/results/VEP_literature/snps_high_drugresponse_literature.txt', 'r') as f:
     literature_snps = [line.strip() for line in f]
 literature_snps=list(set(literature_snps))
 
@@ -342,7 +288,7 @@ literature_snps=list(set(literature_snps))
 # 1. Iterate over seeds
 # =============================================================================
 # ids dict with IIDs as keys and FIDs as values
-QC_final_result = open('/home/projects/pr_46457/people/s174604/ML/RF/inner_gwas/QC_data/A3302_final.fam', 'r')
+QC_final_result = open('/home/inner_gwas/QC_data/A3302_final.fam', 'r')
 fam_ID_dict={}
 for line in QC_final_result:
     fam_ID_dict[line.split(" ")[1]]=line.split(" ")[0]
@@ -380,111 +326,6 @@ for i_seed in results:
 results_roc_auc_pd=pd.DataFrame(results_roc_auc)
 results_roc_auc_inner_pd=pd.DataFrame(results_roc_auc_inner)
 
-# results_roc_auc_pd.to_csv("/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/setup4_final/NTX6/pheno1/fs_lr_30seeds_
-clinical_snps_training_random_added.txt")
-# results_roc_auc_inner_pd.to_csv("/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/setup4_final/NTX6/pheno1/fs_lr_30
-seeds_clinical_snps_training_inner_random_added.txt")
-# pd.DataFrame.from_dict(data=results_feat, orient='index').to_csv('/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/
-setup4_final/NTX6/pheno1/fs_lr_30seeds_clinical_snps_features_training_random_added.txt')
-# pd.DataFrame.from_dict(data=y_test_true, orient='index').to_csv('/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/s
-etup4_final/NTX6/pheno1/fs_lr_30seeds_clinical_snps_features_training_random_added_ytest.txt')
-# pd.DataFrame.from_dict(data=y_test_pred, orient='index').to_csv('/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/s
-etup4_final/NTX6/pheno1/fs_lr_30seeds_clinical_snps_features_training_random_added_ypred.txt')
-# pd.DataFrame.from_dict(data=y_test_index, orient='index').to_csv('/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/
-setup4_final/NTX6/pheno1/fs_lr_30seeds_clinical_snps_features_training_random_added_y_index.txt')
-
-
 end = time.time()
 print('Complete in %.1f sec' %(end - start))
 
-# # =============================================================================
-# # MODEL : random forest
-# # =============================================================================
-# start = time.time()
-# np.warnings.filterwarnings('ignore')
-
-# label = "Oto NTX6"
-# print("Script that runs RF with the label: ",label)
-
-# #best clinical features
-# clinical_features=['cisplatin_BSA','Age_treatment1']
-
-# results=Parallel(n_jobs=32)(delayed(check_last_performaces)(X, y, clinical_features, literature_snps, len(clinical_features)+30, seed, function=
-forward_fs_rf, normalize=False) for seed in range(1,31))
-
-# results_roc_auc=list()
-# results_roc_auc_inner=list()
-# results_feat={}
-# y_test_true={}
-# y_test_pred={}
-# y_test_index={}
-# for i_seed in results:
-#     results_roc_auc.append(i_seed[0])
-#     results_roc_auc_inner.append(i_seed[1])
-#     results_feat.update(i_seed[2])
-#     y_test_true.update(i_seed[3])
-#     y_test_pred.update(i_seed[4])
-#     y_test_index.update(i_seed[5])
-
-# results_roc_auc_pd=pd.DataFrame(results_roc_auc)
-# results_roc_auc_inner_pd=pd.DataFrame(results_roc_auc_inner)
-
-# results_roc_auc_pd.to_csv("/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/setup4_final/NTX6/pheno1/fs_rf_30seeds_
-clinical_snps_training_random_added.txt")
-# results_roc_auc_inner_pd.to_csv("/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/setup4_final/NTX6/pheno1/fs_rf_30
-seeds_clinical_snps_training_inner_random_added.txt")
-# pd.DataFrame.from_dict(data=results_feat, orient='index').to_csv('/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/
-setup4_final/NTX6/pheno1/fs_rf_30seeds_clinical_snps_features_training_random_added.txt')
-# pd.DataFrame.from_dict(data=y_test_true, orient='index').to_csv('/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/s
-etup4_final/NTX6/pheno1/fs_rf_30seeds_clinical_snps_features_training_random_added_ytest.txt')
-# pd.DataFrame.from_dict(data=y_test_pred, orient='index').to_csv('/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/s
-etup4_final/NTX6/pheno1/fs_rf_30seeds_clinical_snps_features_training_random_added_ypred.txt')
-# pd.DataFrame.from_dict(data=y_test_index, orient='index').to_csv('/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/
-setup4_final/NTX6/pheno1/fs_rf_30seeds_clinical_snps_features_training_random_added_y_index.txt')
-
-
-# # # =============================================================================
-# # # MODEL : ANN
-# # =============================================================================
-# start = time.time()
-# np.warnings.filterwarnings('ignore')
-
-# label = "Oto NTX6"
-# print("Script that runs ANN with the label: ",label)
-
-# #best clinical features
-# clinical_features=['Age_treatment1','treatment','BMI']
-
-# results=Parallel(n_jobs=32)(delayed(check_last_performaces)(X, y, clinical_features, literature_snps, len(clinical_features)+30, seed, function=
-forward_fs_ann, normalize=True, parameters={'hidden_layer_sizes': [(3,),(4,),(5,),(6,)], 'learning_rate_init':[0.001,0.01,0.05,0.1]}, model=MLPCla
-ssifier(random_state=42,activation='relu',solver='adam', max_iter=100000)) for seed in range(1,31))
-
-# results_roc_auc=list()
-# results_roc_auc_inner=list()
-# results_feat={}
-# y_test_true={}
-# y_test_pred={}
-# y_test_index={}
-# for i_seed in results:
-#     results_roc_auc.append(i_seed[0])
-#     results_roc_auc_inner.append(i_seed[1])
-#     results_feat.update(i_seed[2])
-#     y_test_true.update(i_seed[3])
-#     y_test_pred.update(i_seed[4])
-#     y_test_index.update(i_seed[5])
-
-# results_roc_auc_pd=pd.DataFrame(results_roc_auc)
-# results_roc_auc_inner_pd=pd.DataFrame(results_roc_auc_inner)
-
-# results_roc_auc_pd.to_csv("/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/setup4_final/NTX6/pheno1/fs_ann_30seeds
-_clinical_snps_training_random_added.txt")
-# results_roc_auc_inner_pd.to_csv("/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/setup4_final/NTX6/pheno1/fs_ann_3
-0seeds_clinical_snps_training_inner_random_added.txt")
-# pd.DataFrame.from_dict(data=results_feat, orient='index').to_csv('/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/
-setup4_final/NTX6/pheno1/fs_ann_30seeds_clinical_snps_features_training_random_added.txt')
-# pd.DataFrame.from_dict(data=y_test_true, orient='index').to_csv('/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/s
-etup4_final/NTX6/pheno1/fs_ann_30seeds_clinical_snps_features_training_random_added_ytest.txt')
-# pd.DataFrame.from_dict(data=y_test_pred, orient='index').to_csv('/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/s
-etup4_final/NTX6/pheno1/fs_ann_30seeds_clinical_snps_features_training_random_added_ypred.txt')
-# pd.DataFrame.from_dict(data=y_test_index, orient='index').to_csv('/home/projects/pr_46457/people/sarga/neurotox/results/forward_select_training/
-setup4_final/NTX6/pheno1/fs_ann_30seeds_clinical_snps_features_training_random_added_y_index.txt')
