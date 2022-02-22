@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec 25 13:41:54 2020
-
 @author: sarga
 """
 import matplotlib.pyplot as plt
@@ -38,19 +36,6 @@ def arrow_plot(all_probas_, all_probas_without_SNPs, samples_affected, column_na
         else:
             df_affected_without_SNPs = df_affected_without_SNPs.drop(i, axis=0)
 
-    #start = 0
-    #for i in range(len(all_probas_)):
-    #    if i < len(df_affected):
-    ##    print(all_probas_.values[i])
-    #        plt.annotate('', xy = (df_affected.values[i], norm[i]),  xycoords = 'axes fraction', \
-    #            xytext = (df_affected_without_SNPs.values[i], norm[i]), textcoords = 'axes fraction', fontsize = 8, \
-    #            color = 'firebrick', arrowprops=dict(edgecolor='firebrick', arrowstyle = '->', shrinkA = 0, shrinkB = 0))
-    #    else:
-    #        plt.annotate('', xy = (df_notAffected.values[start], norm[i]),  xycoords = 'axes fraction', \
-    #            xytext = (df_notAffected_without_SNPs.values[start], norm[i]), textcoords = 'axes fraction', fontsize = 8, \
-    #            color = 'green', arrowprops=dict(edgecolor='green', arrowstyle = '->', shrinkA = 0, shrinkB = 0))
-    #        start += 1
-
     df_notAffected_without_SNPs = df_notAffected_without_SNPs.sort_values(by=column_name)
     df_affected_without_SNPs = df_affected_without_SNPs.sort_values(by=column_name)
 
@@ -61,7 +46,7 @@ def arrow_plot(all_probas_, all_probas_without_SNPs, samples_affected, column_na
     df_affected = df_affected.reindex(new_index)
 
 
-    ##FOR AFFECTED INDIVIDUALS
+    #FOR AFFECTED INDIVIDUALS
     SNPs_confused = []
     easily_predictable = []
     difficult_rescued = []
@@ -100,12 +85,10 @@ def arrow_plot(all_probas_, all_probas_without_SNPs, samples_affected, column_na
         if i not in difficult_not_rescued:
             df_affected_difficult_not_rescued = df_affected_difficult_not_rescued.drop(i, axis=0)
             df_affected_without_SNPs_difficult_not_rescued = df_affected_without_SNPs_difficult_not_rescued.drop(i, axis=0)
-    # print("Affected SNPs confused:", list(df_affected_SNPsconfused.index))
-    # print("Affected not rescued:", list(df_affected_difficult_not_rescued.index))
     print("Affected SNPs confused:", df_affected_SNPsconfused)
     print("Affected not rescued:", df_affected_difficult_not_rescued)
 
-    ##FOR NON-AFFECTED INDIVIDUALS
+    #FOR NON-AFFECTED INDIVIDUALS
     SNPs_confused_ = []
     easily_predictable_ = []
     difficult_rescued_ = []
@@ -145,12 +128,10 @@ def arrow_plot(all_probas_, all_probas_without_SNPs, samples_affected, column_na
         if i not in difficult_not_rescued_:
             df_notAffected_difficult_not_rescued_ = df_notAffected_difficult_not_rescued_.drop(i, axis=0)
             df_notAffected_without_SNPs_difficult_not_rescued_ = df_notAffected_without_SNPs_difficult_not_rescued_.drop(i, axis=0)
-    # print("Not affected SNPs confused:", list(df_notAffected_SNPsconfused_.index))
-    # print("Not affected not rescued:", list(df_notAffected_difficult_not_rescued_.index))
     print("Not affected SNPs confused:", df_notAffected_SNPsconfused_)
     print("Not affected not rescued:", df_notAffected_difficult_not_rescued_)
 
-    ##PLOT
+    #PLOT
     #change norm_num around to fit the legends in the right side
     fig = plt.figure(figsize = (10,10))
     plt.xlabel('Logistic regression Score')
@@ -166,11 +147,7 @@ def arrow_plot(all_probas_, all_probas_without_SNPs, samples_affected, column_na
             size = 20, ha = 'left', color='red')
 
     ax.set_yticklabels([])
-
-    #plt = plt.subplot(111)
     plt.axvline(target, linewidth=0.5, color='dimgrey',linestyle='dashed')
-    #plt.axhline(0.6)
-    #plt.axhline(0.8)
 
     start = 0
     start_1 = 0
