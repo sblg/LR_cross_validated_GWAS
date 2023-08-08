@@ -8,5 +8,5 @@ inner_gwas_NTX6.sh: this is called in SGnewsetup.py to perform a genome-wide ass
 arrowplot_function.py: script used to generate Supplementary Figure 2.
 
 # References
-If you use this code or find it helpful in your research, please consider citing the following manuscript:
+If you use this code or find it helpful in your research, please cite the following manuscript:
 - Garcia, S.L.; Lauritsen, J.; Christiansen, B.K.; Hansen, I.F.; Bandak, M.; Dalgaard, M.D.; Daugaard, G.; Gupta, R. Predicting Hearing Loss in Testicular Cancer Patients after Cisplatin-Based Chemotherapy. Cancers 2023, 15, 3923. https://doi.org/10.3390/cancers15153923
